@@ -35,7 +35,14 @@ func (app *application) routes() http.Handler {
 	// table lookup is only through id
 	mux.HandleFunc("GET /{table}/{id}", app.showRecordHandler)
 
-	return app.logRequest(mux)
+	return app.enableCors(app.logRequest(mux))
+}
+
+func (app *application) enableCors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (app *application) logRequest(next http.Handler) http.Handler {
