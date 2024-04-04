@@ -137,10 +137,10 @@ func (app *application) addRecordHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	app.db[table] = append(app.db[table], newRow)
-	l := len(app.db[table])
-	app.db[table][l-1]["id"] = app.db[table][l-2]["id"].(float64) + 1
-	app.writeJSON(w, http.StatusOK, envelope{string(table): app.db[table][l-1]}, nil)
+	app.db.Tables[table] = append(app.db.Tables[table], newRow)
+	l := len(app.db.Tables[table])
+	app.db.Tables[table][l-1]["id"] = app.db.Tables[table][l-2]["id"].(float64) + 1
+	app.writeJSON(w, http.StatusOK, envelope{string(table): app.db.Tables[table][l-1]}, nil)
 }
 
 func (app *application) editRecordHandler(w http.ResponseWriter, r *http.Request) {

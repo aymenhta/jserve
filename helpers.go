@@ -3,26 +3,13 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"strings"
 )
 
 type envelope map[string]any
-
-func parseConfig() *config {
-	var cfg config
-
-	flag.StringVar(&cfg.dbPath, "db", "./db.json", "the path to the json databse")
-	flag.StringVar(&cfg.port, "port", ":4000", "the port the server will be listening to")
-
-	flag.Parse()
-
-	return &cfg
-}
 
 // from the book: "Let's Go Further"
 func (app *application) writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
@@ -83,21 +70,4 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 		return errors.New("body must only contain a single JSON value")
 	}
 	return nil
-}
-
-func searchRecords[T comparable](data []row, col string, v T) ([]row, error) {
-	result := make([]row, 0)
-
-	for _, row := range data {
-		val, ok := row[col]
-		if !ok {
-			return result, errColumnNotFound
-		}
-
-		if val == v {
-			result = append(result, row)
-		}
-	}
-
-	return slices.Clone(result), nil
 }

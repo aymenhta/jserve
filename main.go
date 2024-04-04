@@ -6,14 +6,9 @@ import (
 )
 
 type application struct {
-	db  database
+	db  *database
 	log *slog.Logger
 	cfg *config
-}
-
-type config struct {
-	dbPath string
-	port   string
 }
 
 func main() {

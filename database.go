@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"sort"
+	"sync"
 )
 
 var (
@@ -17,9 +19,12 @@ var (
 
 type table string
 type row map[string]any
-type database map[table][]row
+type database struct {
+	sync.Mutex
+	Tables map[table][]row `json:"tables"`
+}
 
-func loadDB(path string) (database, error) {
+func loadDB(path string) (*database, error) {
 	// read from file
 	content, err := os.Open(path)
 	if err != nil {
@@ -27,40 +32,45 @@ func loadDB(path string) (database, error) {
 	}
 
 	// decode json
-	db := make(database)
-	if err = json.NewDecoder(content).Decode(&db); err != nil {
+	database := &database{
+		Tables: make(map[table][]row),
+	}
+	if err = json.NewDecoder(content).Decode(&database.Tables); err != nil {
 		return nil, fmt.Errorf("could not decode json: '%s'", err.Error())
 	}
 
-	return db, nil
+	return database, nil
 }
 
-func (db database) tableExists(name table) bool {
-	_, ok := db[name]
+func (db *database) tableExists(name table) bool {
+	_, ok := db.Tables[name]
 	return ok
 }
 
-func (db database) getTable(name table) ([]row, error) {
+func (db *database) getTable(name table) ([]row, error) {
 	if !db.tableExists(name) {
 		return nil, errTableNotFound
 	}
 
-	return db[name], nil
+	return db.Tables[name], nil
 }
 
-func (db database) DeleteRowById(name table, id float64) error {
+func (db *database) DeleteRowById(name table, id float64) error {
 	if !db.tableExists(name) {
 		return errTableNotFound
 	}
 
-	for i, row := range db[name] {
+	db.Lock()
+	defer db.Unlock()
+
+	for i, row := range db.Tables[name] {
 		val, ok := row["id"]
 		if !ok {
 			return errColumnNotFound
 		}
 
 		if val == id {
-			db[name] = append(db[name][:i], db[name][i+1:]...)
+			db.Tables[name] = append(db.Tables[name][:i], db.Tables[name][i+1:]...)
 			return nil
 		}
 	}
@@ -68,12 +78,15 @@ func (db database) DeleteRowById(name table, id float64) error {
 	return errRecordNotFound
 }
 
-func (db database) EditRowById(name table, id float64, body row) (row, error) {
+func (db *database) EditRowById(name table, id float64, body row) (row, error) {
 	if !db.tableExists(name) {
 		return nil, errTableNotFound
 	}
 
-	for i, row := range db[name] {
+	db.Lock()
+	defer db.Unlock()
+
+	for i, row := range db.Tables[name] {
 		// check if key exist in row
 		val, ok := row["id"]
 		if !ok {
@@ -81,20 +94,20 @@ func (db database) EditRowById(name table, id float64, body row) (row, error) {
 		}
 
 		if val == id {
-			db[name][i] = body
-			return db[name][i], nil
+			db.Tables[name][i] = body
+			return db.Tables[name][i], nil
 		}
 	}
 
 	return nil, errRecordNotFound
 }
 
-func (db database) GetRowById(name table, id float64) (row, error) {
+func (db *database) GetRowById(name table, id float64) (row, error) {
 	if !db.tableExists(name) {
 		return nil, errTableNotFound
 	}
 
-	for i, row := range db[name] {
+	for i, row := range db.Tables[name] {
 		// check if key exist in row
 		val, ok := row["id"]
 		if !ok {
@@ -102,7 +115,7 @@ func (db database) GetRowById(name table, id float64) (row, error) {
 		}
 
 		if val == id {
-			return db[name][i], nil
+			return db.Tables[name][i], nil
 		}
 	}
 
@@ -116,4 +129,21 @@ func quickSort[T cmp.Ordered](rows []row, col string, descendingOrder bool) {
 		}
 		return rows[i][col].(T) < rows[j][col].(T)
 	})
+}
+
+func searchRecords[T comparable](data []row, col string, v T) ([]row, error) {
+	result := make([]row, 0)
+
+	for _, row := range data {
+		val, ok := row[col]
+		if !ok {
+			return result, errColumnNotFound
+		}
+
+		if val == v {
+			result = append(result, row)
+		}
+	}
+
+	return slices.Clone(result), nil
 }
