@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	errTableNotFound  = errors.New("table does not exist")
-	errColumnNotFound = errors.New("table does not exist")
-	errRecordNotFound = errors.New("record does not exist")
+	errTableNotFound       = errors.New("table does not exist")
+	errColumnNotFound      = errors.New("table does not exist")
+	errRecordAlreadyExists = errors.New("record already exists")
+	errRecordNotFound      = errors.New("record does not exist")
 )
 
 type table string
@@ -76,6 +77,17 @@ func (db *database) DeleteRowById(name table, id float64) error {
 	}
 
 	return errRecordNotFound
+}
+
+func (db *database) AddRow(name table, body row) (row, error) {
+	// check if a table exists
+	if !db.tableExists(name) {
+		return nil, errTableNotFound
+	}
+	db.Tables[name] = append(db.Tables[name], body)
+	l := len(db.Tables[name])
+	db.Tables[name][l-1]["id"] = db.Tables[name][l-2]["id"].(float64) + 1
+	return db.GetRowById(name, db.Tables[name][l-1]["id"].(float64))
 }
 
 func (db *database) EditRowById(name table, id float64, body row) (row, error) {

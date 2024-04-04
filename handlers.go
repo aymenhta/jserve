@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"slices"
 	"strconv"
@@ -120,14 +121,6 @@ func (app *application) showTableHandler(w http.ResponseWriter, r *http.Request)
 func (app *application) addRecordHandler(w http.ResponseWriter, r *http.Request) {
 	table := table(r.PathValue("table"))
 
-	if !app.db.tableExists(table) {
-		app.writeJSON(
-			w,
-			http.StatusNotFound,
-			envelope{"message": errTableNotFound, "name": table}, nil)
-		return
-	}
-
 	newRow := make(row)
 	if err := app.readJSON(w, r, &newRow); err != nil {
 		app.writeJSON(
@@ -137,10 +130,27 @@ func (app *application) addRecordHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	app.db.Tables[table] = append(app.db.Tables[table], newRow)
-	l := len(app.db.Tables[table])
-	app.db.Tables[table][l-1]["id"] = app.db.Tables[table][l-2]["id"].(float64) + 1
-	app.writeJSON(w, http.StatusOK, envelope{string(table): app.db.Tables[table][l-1]}, nil)
+	data, err := app.db.AddRow(table, newRow)
+	if err != nil {
+		switch {
+		case errors.Is(err, errTableNotFound):
+		case errors.Is(err, errColumnNotFound):
+		case errors.Is(err, errRecordNotFound):
+			app.writeJSON(
+				w,
+				http.StatusNotFound,
+				envelope{"message": err.Error(), "name": table}, nil)
+			return
+		default:
+			app.writeJSON(
+				w,
+				http.StatusInternalServerError,
+				envelope{"message": err.Error()}, nil)
+			return
+		}
+	}
+
+	app.writeJSON(w, http.StatusCreated, envelope{string(table): data}, nil)
 }
 
 func (app *application) editRecordHandler(w http.ResponseWriter, r *http.Request) {
