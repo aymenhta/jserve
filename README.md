@@ -29,7 +29,7 @@ fake-jason is a handy cli tool for front-end developers to mock up a back-end in
 ```bash
 git clone https://github.com/aymenhta/fake-json
 cd fake-json
-go build -ldflags='-s' -o=./bin/ ./cmd/
+go build -ldflags='-s' -o=./bin/ .
 cd bin
 ./cmd --db ../db.json
 ```
