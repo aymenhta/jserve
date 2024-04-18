@@ -8,10 +8,12 @@ import (
 	"os"
 	"slices"
 	"sort"
+	"strings"
 	"sync"
 )
 
 var (
+	errNotAJsonFile        = errors.New("the provided file is not a json file")
 	errTableNotFound       = errors.New("table does not exist")
 	errColumnNotFound      = errors.New("table does not exist")
 	errRecordAlreadyExists = errors.New("record already exists")
@@ -26,6 +28,11 @@ type database struct {
 }
 
 func loadDB(path string) (*database, error) {
+	// check if the file is a json file
+	s := strings.Split(path, ".")
+	if s[len(s)-1] != "json" {
+		return nil, errNotAJsonFile
+	}
 	// read from file
 	content, err := os.Open(path)
 	if err != nil {
@@ -84,6 +91,10 @@ func (db *database) AddRow(name table, body row) (row, error) {
 	if !db.tableExists(name) {
 		return nil, errTableNotFound
 	}
+
+	db.Lock()
+	defer db.Unlock()
+
 	db.Tables[name] = append(db.Tables[name], body)
 	l := len(db.Tables[name])
 	db.Tables[name][l-1]["id"] = db.Tables[name][l-2]["id"].(float64) + 1
