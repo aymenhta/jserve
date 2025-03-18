@@ -32,7 +32,7 @@ jserve is a handy cli tool for front-end developers to mock up a back-end in a s
 jserve can be downloaded as a standalone binary directly from the [releases page](https://github.com/aymenhta/jserve/releases).
 
 ```bash
-./jserve --db ./db.json
+./jserve --db=./db.json
 ```
 
 **Alternative**: If you do not prefer that method you can simply install it using go:
