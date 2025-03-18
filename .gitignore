@@ -21,3 +21,8 @@ bin/
 
 # Go workspace file
 go.work
+
+.goreleaser.yaml
+
+# Added by goreleaser init:
+dist/
