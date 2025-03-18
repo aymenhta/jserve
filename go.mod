@@ -1,3 +1,3 @@
-module github.com/aymenhta/fake-jason
+module github.com/aymenhta/jserve
 
-go 1.22.1
+go 1.23

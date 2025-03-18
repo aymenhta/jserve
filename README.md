@@ -1,5 +1,5 @@
-# Fake-Jason
-fake-jason is a handy cli tool for front-end developers to mock up a back-end in a snap, making it easier for devs to test and prototype without any hassle.
+# jserve
+jserve is a handy cli tool for front-end developers to mock up a back-end in a snap, making it easier for devs to test and prototype without any hassle.
 
 ## routes
 

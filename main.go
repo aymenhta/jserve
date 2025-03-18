@@ -1,10 +1,5 @@
 package main
 
-/*
-	TODO: Add Pagination
-	TODO: Explore the possibility of a ui
-*/
-
 import (
 	"log/slog"
 	"os"
