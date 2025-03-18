@@ -1,4 +1,5 @@
 # jserve
+
 jserve is a handy cli tool for front-end developers to mock up a back-end in a snap, making it easier for devs to test and prototype without any hassle.
 
 ## routes
@@ -20,16 +21,22 @@ jserve is a handy cli tool for front-end developers to mock up a back-end in a s
 | Sorting   | **GET** /{table}?sort=*{}*         | sort a table based on a column, for descending sorting append the column name with a "**-**" | GET /posts?sort=-id                |
 
 ## CLI arguments
+
 | Argument | Default   | Description                               |
 | -------- | --------- | ----------------------------------------- |
 | **db**   | ./db.json | the path to the json databse.             |
 | **port** | :4000     | the port the server will be listening to. |
 
 ## Local usage
+
+jserve can be downloaded as a standalone binary directly from the [releases page](https://github.com/aymenhta/jserve/releases).
+
 ```bash
-git clone https://github.com/aymenhta/fake-json
-cd fake-json
-go build -ldflags='-s' -o=./bin/ .
-cd bin
-./cmd --db ../db.json
+./jserve --db ./db.json
+```
+
+**Alternative**: If you do not prefer that method you can simply install it using go:
+
+```bash
+go install github.com/aymenhta/jserve@latest
 ```

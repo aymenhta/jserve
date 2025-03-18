@@ -15,6 +15,11 @@ func main() {
 	// get the db path
 	cfg := parseConfig()
 
+	if cfg.dbPath == "" {
+		printHelp()
+		os.Exit(0)
+	}
+
 	db, err := loadDB(cfg.dbPath)
 	if err != nil {
 		panic(err.Error())

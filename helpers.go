@@ -71,3 +71,19 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	}
 	return nil
 }
+
+func printHelp() {
+	helpMsg := `jserve [OPTIONS]
+
+OPTIONS:
+	--db: the path to the json databse.
+	--port: the port the server will be listening to. (default: ":4000")
+	--client: the base url of the client, helps with CORS. (default: "*")
+
+EXAMPLE:
+	$ jserve --db=./posts.json
+	The above command will start a json server using the port 4000, allow
+	any client to connect to it, and use ./posts.json as a database.`
+
+	fmt.Println(helpMsg)
+}
